@@ -154,11 +154,34 @@ else:
             loan_term_months = st.number_input("Plazo (meses)", min_value=1, value=24, step=1)
             loan_type = st.selectbox("Tipo de crédito", ["Libre inversión", "Hipotecario", "Auto", "Consumo"])
             existing_monthly_debt = st.number_input("Deuda mensual actual (S/.)", min_value=0.0, value=0.0, step=50.0)
+
+            # --- Variables adicionales de riesgo ---
+            active_tl = st.number_input("Líneas de crédito activas", min_value=0, value=1, step=1)
+            missed_pmnt = st.number_input("Pagos atrasados históricos", min_value=0, value=0, step=1)
         with col2:
+            # Ingreso mensual neto
             net_income = st.number_input("Ingreso mensual neto (S/.)", min_value=0.0, value=2000.0, step=100.0)
-            credit_score = st.number_input("Puntaje Crediticio", min_value=0, value=600, step=10)
-            age = st.number_input("Edad", min_value=18, value=30, step=1)
+            # Edad (puedes bloquearla si viene del perfil)
+            age = st.number_input("Edad", min_value=18, max_value=100, value=st.session_state.user.get('age', 30), step=1)
             time_employed = st.number_input("Tiempo con empleador (meses)", min_value=0, value=12, step=1)
+
+            marital_status = st.selectbox("Estado Civil", ["Soltero", "Casado"])
+            gender = st.selectbox("Género", ["Femenino", "Masculino"])
+
+        # Convertir variables categóricas a flags
+        married_flag = 1 if marital_status == "Casado" else 0
+        single_flag = 1 if marital_status == "Soltero" else 0
+        female_flag = 1 if gender == "Femenino" else 0
+        male_flag = 1 if gender == "Masculino" else 0
+
+        # Si quieres calcular un Credit Score dinámico:
+        def fake_credit_score(age, income, missed_pmnt):
+            base = 600
+            score = base + (income / 1000) - (missed_pmnt * 20) + (age / 2)
+            return max(300, min(900, int(score)))
+
+        credit_score = fake_credit_score(age, net_income, missed_pmnt)
+        st.info(f"💳 Puntaje Crediticio simulado: **{credit_score}**")
 
         # Cálculo cuota mensual
         interest_rates_by_type = {
@@ -184,8 +207,19 @@ else:
 
         # Predicción con modelo
         if credit_model is not None:
-            # Aquí armas tu vector según tu modelo entrenado
-            features = np.array([[age, net_income, credit_score, time_employed]])
+            # Construir features en el mismo orden del entrenamiento (10 variables)
+            features = np.array([[
+                age,
+                net_income,
+                credit_score,
+                active_tl,
+                missed_pmnt,
+                married_flag,
+                single_flag,
+                female_flag,
+                male_flag,
+                time_employed
+            ]])
             pred_class = credit_model.predict(features)[0]
         else:
             pred_class = "P2"  # placeholder
