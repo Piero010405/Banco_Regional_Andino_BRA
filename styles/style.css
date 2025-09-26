@@ -1,0 +1,27 @@
+/* styles/style.css */
+body {
+    background-color: #f5f9ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h2, h3 {
+    color: #003366; /* Azul oscuro */
+}
+
+.stButton>button {
+    background-color: #0047AB; /* Azul banco */
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.stTextInput>div>input {
+    border-radius: 8px;
+    border: 1px solid #0047AB;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
