@@ -3,15 +3,17 @@ import psycopg2
 import pandas as pd
 import hashlib
 import streamlit as st
+import os
+from dotenv import load_dotenv
 
-# CADENA SUPABASE
-# postgresql://postgres.fqqsexqrfplgoyrrdocv:[YOUR-PASSWORD]@aws-1-us-east-2.pooler.supabase.com:6543/postgres
+# Cargar variables de entorno
+load_dotenv()
 
-USER = "postgres.fqqsexqrfplgoyrrdocv" #os.getenv("user")
-PASSWORD = "USIL$2025$#%" # os.getenv("password")
-HOST = "aws-1-us-east-2.pooler.supabase.com" #os.getenv("host")
-PORT = "6543" #os.getenv("port")
-DBNAME = "postgres" #os.getenv("dbname")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
 
 # Función para obtener una conexión a la base de datos
 @st.cache_resource
@@ -22,11 +24,11 @@ def get_connection():
     """
     try:
         connection = psycopg2.connect(
-            user=USER,
-            password=PASSWORD,
-            host=HOST,
-            port=PORT,
-            dbname=DBNAME
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME
         )
         return connection
     except Exception as e:
