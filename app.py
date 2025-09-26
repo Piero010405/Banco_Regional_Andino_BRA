@@ -1,3 +1,7 @@
+import streamlit as st
+from pathlib import Path
+from database.db import verify_user  # tu función para validar login
+
 # =============================
 # CONFIGURACIÓN DE LA PÁGINA
 # =============================
