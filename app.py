@@ -11,7 +11,8 @@ from database.db import (
     get_loans_summary,
     get_loan_evaluations,
     insert_loan,
-    insert_loan_evaluation
+    insert_loan_evaluation,
+    get_customer_profile
 )
 
 # =============================
@@ -90,6 +91,9 @@ else:
         st.rerun()
 
     customer_id = st.session_state.user['customer_id']
+    profile = get_customer_profile(customer_id)
+    st.session_state.profile = profile
+
     st.title("🏦 Dashboard – Posición Consolidada")
     st.write(f"Bienvenido **{st.session_state.user['full_name']}**")
 
@@ -148,6 +152,16 @@ else:
 
         credit_model = load_credit_model()
 
+        # Tomar datos del perfil del cliente
+        profile = st.session_state.get('profile', {})
+        age_val = profile.get('age', 30)
+        gender_val = profile.get('gender', 'Masculino')
+        marital_status_val = profile.get('marital_status', 'Soltero')
+        active_tl_val = profile.get('tot_active_tl', 1)
+        missed_pmnt_val = profile.get('tot_missed_pmnt', 0)
+        net_income_val = profile.get('net_monthly_income', 2000.0)
+        time_employed_val = profile.get('time_with_curr_empr', 12)
+
         col1, col2 = st.columns(2)
         with col1:
             loan_amount = st.number_input("Monto solicitado (S/.)", min_value=0.0, value=10000.0, step=100.0)
@@ -156,17 +170,25 @@ else:
             existing_monthly_debt = st.number_input("Deuda mensual actual (S/.)", min_value=0.0, value=0.0, step=50.0)
 
             # --- Variables adicionales de riesgo ---
-            active_tl = st.number_input("Líneas de crédito activas", min_value=0, value=1, step=1)
-            missed_pmnt = st.number_input("Pagos atrasados históricos", min_value=0, value=0, step=1)
+            active_tl = st.number_input("Líneas de crédito activas", min_value=0, value=int(active_tl_val), step=1)
+            missed_pmnt = st.number_input("Pagos atrasados históricos", min_value=0, value=int(missed_pmnt_val), step=1)
         with col2:
             # Ingreso mensual neto
-            net_income = st.number_input("Ingreso mensual neto (S/.)", min_value=0.0, value=2000.0, step=100.0)
-            # Edad (puedes bloquearla si viene del perfil)
-            age = st.number_input("Edad", min_value=18, max_value=100, value=st.session_state.user.get('age', 30), step=1)
-            time_employed = st.number_input("Tiempo con empleador (meses)", min_value=0, value=12, step=1)
+            net_income = st.number_input("Ingreso mensual neto (S/.)", min_value=0.0, value=float(net_income_val), step=100.0)
 
-            marital_status = st.selectbox("Estado Civil", ["Soltero", "Casado"])
-            gender = st.selectbox("Género", ["Femenino", "Masculino"])
+            # Edad (SOLO LECTURA)
+            st.text_input("Edad", value=str(age_val), disabled=True)
+            age = age_val  # para el modelo
+
+            # Tiempo con empleador
+            time_employed = st.number_input("Tiempo con empleador (meses)", min_value=0, value=int(time_employed_val), step=1)
+
+            # Estado Civil y Género (solo lectura)
+            st.text_input("Estado Civil", value=marital_status_val, disabled=True)
+            st.text_input("Género", value=gender_val, disabled=True)
+
+            marital_status = marital_status_val
+            gender = gender_val
 
         # Convertir variables categóricas a flags
         married_flag = 1 if marital_status == "Casado" else 0

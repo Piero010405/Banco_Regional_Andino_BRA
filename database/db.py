@@ -162,3 +162,25 @@ def insert_loan_evaluation(loan_id, pred_class, risk_level, monthly_payment, dti
     except Exception as e:
         st.error(f"Error al insertar evaluación de préstamo: {e}")
         return False
+
+def get_customer_profile(customer_id):
+    from .connection import get_connection  # si tienes un helper para conexión
+    conn = get_connection()
+    query = """
+        SELECT c.full_name, c.marital_status, c.gender, c.birth_date,
+               p.age, p.net_monthly_income, p.credit_score,
+               p.time_with_curr_empr, p.tot_active_tl, p.tot_missed_pmnt
+        FROM customers c
+        LEFT JOIN customer_profiles p ON c.customer_id = p.customer_id
+        WHERE c.customer_id = %s
+    """
+    with conn.cursor() as cur:
+        cur.execute(query, (customer_id,))
+        row = cur.fetchone()
+    conn.close()
+    if row:
+        cols = ['full_name', 'marital_status', 'gender', 'birth_date',
+                'age', 'net_monthly_income', 'credit_score',
+                'time_with_curr_empr', 'tot_active_tl', 'tot_missed_pmnt']
+        return dict(zip(cols, row))
+    return {}
