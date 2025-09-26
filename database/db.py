@@ -164,7 +164,6 @@ def insert_loan_evaluation(loan_id, pred_class, risk_level, monthly_payment, dti
         return False
 
 def get_customer_profile(customer_id):
-    from .connection import get_connection  # si tienes un helper para conexión
     conn = get_connection()
     query = """
         SELECT c.full_name, c.marital_status, c.gender, c.birth_date,
