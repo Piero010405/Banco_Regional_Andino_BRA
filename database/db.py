@@ -163,6 +163,8 @@ def insert_loan_evaluation(loan_id, pred_class, risk_level, monthly_payment, dti
         st.error(f"Error al insertar evaluación de préstamo: {e}")
         return False
 
+import pandas as pd
+
 def get_customer_profile(customer_id):
     conn = get_connection()
     query = """
@@ -173,13 +175,8 @@ def get_customer_profile(customer_id):
         LEFT JOIN customer_profiles p ON c.customer_id = p.customer_id
         WHERE c.customer_id = %s
     """
-    with conn.cursor() as cur:
-        cur.execute(query, (customer_id,))
-        row = cur.fetchone()
+    df = pd.read_sql(query, conn, params=(customer_id,))
     conn.close()
-    if row:
-        cols = ['full_name', 'marital_status', 'gender', 'birth_date',
-                'age', 'net_monthly_income', 'credit_score',
-                'time_with_curr_empr', 'tot_active_tl', 'tot_missed_pmnt']
-        return dict(zip(cols, row))
+    if not df.empty:
+        return df.iloc[0].to_dict()
     return {}
