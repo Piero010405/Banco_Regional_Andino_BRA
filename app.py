@@ -33,6 +33,18 @@ logo_path = Path("resources/BRA-LOGO-BG.png")
 if logo_path.exists():
     st.image(str(logo_path), width=200)
 
+## MODELO
+# Riesgo Crediticio
+@st.cache_resource
+def load_credit_model():
+    try:
+        with open('components/demo_model.pkl', 'rb') as f:
+            model = pickle.load(f)
+        return model
+    except FileNotFoundError:
+        st.error("No se encontró el archivo del modelo de crédito.")
+        return None
+
 # =============================
 # VARIABLES DE SESIÓN
 # =============================
@@ -131,19 +143,13 @@ else:
     with tab4:
         st.subheader("Nueva Solicitud de Crédito")
 
-        # --- Cargar modelo ---
-        try:
-            with open("components/demo_model.pkl", "rb") as f:
-                credit_model = pickle.load(f)
-        except:
-            st.error("No se encontró el modelo demo_model.pkl")
-            credit_model = None
+        credit_model = load_credit_model()
 
         col1, col2 = st.columns(2)
         with col1:
             loan_amount = st.number_input("Monto solicitado (S/.)", min_value=0.0, value=10000.0, step=100.0)
             loan_term_months = st.number_input("Plazo (meses)", min_value=1, value=24, step=1)
-            loan_type = st.selectbox("Tipo de crédito", ["Libre inversión", "Hipotecario", "Auto", "Consumo"])
+            loan_type = st.selectbox("Tipo de crédito", ["Libre inversión", "Hipotecario", "Auto", "Consumo"])S
             existing_monthly_debt = st.number_input("Deuda mensual actual (S/.)", min_value=0.0, value=0.0, step=50.0)
         with col2:
             net_income = st.number_input("Ingreso mensual neto (S/.)", min_value=0.0, value=2000.0, step=100.0)
@@ -174,7 +180,7 @@ else:
         st.write(f"**DTI estimado:** {dti:.2%}")
 
         # Predicción con modelo
-        if credit_model:
+        if credit_model is not None:
             # Aquí armas tu vector según tu modelo entrenado
             features = np.array([[age, net_income, credit_score, time_employed]])
             pred_class = credit_model.predict(features)[0]
