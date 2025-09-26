@@ -149,7 +149,7 @@ else:
         with col1:
             loan_amount = st.number_input("Monto solicitado (S/.)", min_value=0.0, value=10000.0, step=100.0)
             loan_term_months = st.number_input("Plazo (meses)", min_value=1, value=24, step=1)
-            loan_type = st.selectbox("Tipo de crédito", ["Libre inversión", "Hipotecario", "Auto", "Consumo"])S
+            loan_type = st.selectbox("Tipo de crédito", ["Libre inversión", "Hipotecario", "Auto", "Consumo"])
             existing_monthly_debt = st.number_input("Deuda mensual actual (S/.)", min_value=0.0, value=0.0, step=50.0)
         with col2:
             net_income = st.number_input("Ingreso mensual neto (S/.)", min_value=0.0, value=2000.0, step=100.0)
