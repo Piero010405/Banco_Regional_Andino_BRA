@@ -72,7 +72,7 @@ if not st.session_state.logged_in:
                 st.session_state.logged_in = True
                 st.session_state.user = user
                 st.success(f"Bienvenido {user['full_name']}")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Credenciales inválidas. Verifique sus datos.")
         else:
@@ -81,12 +81,12 @@ if not st.session_state.logged_in:
 # =============================
 # DASHBOARD
 # =============================
-else:
+else:s
     st.sidebar.title("Menú")
     if st.sidebar.button("Cerrar sesión"):
         st.session_state.logged_in = False
         st.session_state.user = None
-        st.experimental_rerun()
+        st.rerun()
 
     customer_id = st.session_state.user['customer_id']
     st.title("🏦 Dashboard – Posición Consolidada")
