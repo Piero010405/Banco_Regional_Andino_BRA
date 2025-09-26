@@ -81,7 +81,7 @@ if not st.session_state.logged_in:
 # =============================
 # DASHBOARD
 # =============================
-else:s
+else:
     st.sidebar.title("Menú")
     if st.sidebar.button("Cerrar sesión"):
         st.session_state.logged_in = False
