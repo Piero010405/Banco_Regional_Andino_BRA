@@ -36,6 +36,7 @@ def get_connection():
         st.error(f"Error al conectar con la base de datos: {e}")
         return None
 
+
 def verify_user(dni: str, card_number: str, password: str):
     """
     Verifica usuario por DNI + Tarjeta + Clave (en hash SHA-256).
@@ -65,3 +66,99 @@ def verify_user(dni: str, card_number: str, password: str):
     except Exception as e:
         st.error(f"Error al verificar usuario: {e}")
         return None
+    
+# --- Consultas por cliente ---
+def get_accounts_summary(customer_id):
+    """Resumen de cuentas del cliente."""
+    conn = get_connection()
+    query = """
+    SELECT account_id, account_type, account_number, balance, currency, status
+    FROM accounts
+    WHERE customer_id=%s
+    """
+    return pd.read_sql(query, conn, params=(customer_id,))
+
+def get_transactions_by_customer(customer_id):
+    """Movimientos de todas las cuentas del cliente."""
+    conn = get_connection()
+    query = """
+    SELECT t.transaction_id, a.account_number, t.date, t.type, t.description, t.amount, t.balance_after
+    FROM transactions t
+    JOIN accounts a ON a.account_id = t.account_id
+    WHERE a.customer_id=%s
+    ORDER BY t.date DESC
+    """
+    return pd.read_sql(query, conn, params=(customer_id,))
+
+def get_loans_summary(customer_id):
+    """Préstamos solicitados/activos del cliente."""
+    conn = get_connection()
+    query = """
+    SELECT loan_id, loan_amount, loan_term_months, loan_type, existing_monthly_debt,
+           application_date, status
+    FROM loans
+    WHERE customer_id=%s
+    ORDER BY application_date DESC
+    """
+    return pd.read_sql(query, conn, params=(customer_id,))
+
+def get_loan_evaluations(customer_id):
+    """Evaluaciones de préstamos para el cliente."""
+    conn = get_connection()
+    query = """
+    SELECT le.evaluation_id, le.loan_id, le.pred_class, le.risk_level,
+           le.monthly_payment, le.dti, le.decision, le.evaluated_at
+    FROM loan_evaluations le
+    JOIN loans l ON l.loan_id = le.loan_id
+    WHERE l.customer_id=%s
+    ORDER BY le.evaluated_at DESC
+    """
+    return pd.read_sql(query, conn, params=(customer_id,))
+
+# --- Para módulo admin / revisión manual ---
+def get_pending_loans():
+    """Préstamos pendientes de revisión/aprobación (admin)."""
+    conn = get_connection()
+    query = """
+    SELECT l.loan_id, c.full_name, l.loan_amount, l.loan_term_months, l.loan_type,
+           l.existing_monthly_debt, l.application_date, l.status,
+           le.pred_class, le.risk_level, le.monthly_payment, le.dti, le.decision
+    FROM loans l
+    JOIN customers c ON l.customer_id=c.customer_id
+    LEFT JOIN loan_evaluations le ON le.loan_id=l.loan_id
+    WHERE le.decision='Revisión Manual'
+    ORDER BY l.application_date DESC
+    """
+    return pd.read_sql(query, conn)
+
+# --- Insertar nueva solicitud de préstamo ---
+def insert_loan(customer_id, loan_amount, loan_term_months, loan_type, existing_monthly_debt, status='Pendiente'):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO loans (customer_id, loan_amount, loan_term_months, loan_type, existing_monthly_debt, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING loan_id;
+            """, (customer_id, loan_amount, loan_term_months, loan_type, existing_monthly_debt, status))
+            loan_id = cur.fetchone()[0]
+        conn.commit()
+        return loan_id
+    except Exception as e:
+        st.error(f"Error al insertar préstamo: {e}")
+        return None
+
+# --- Insertar evaluación de préstamo ---
+def insert_loan_evaluation(loan_id, pred_class, risk_level, monthly_payment, dti, decision):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO loan_evaluations (loan_id, pred_class, risk_level, monthly_payment, dti, decision)
+                VALUES (%s, %s, %s, %s, %s, %s);
+            """, (loan_id, pred_class, risk_level, monthly_payment, dti, decision))
+        conn.commit()
+        return True
+    except Exception as e:
+        st.error(f"Error al insertar evaluación de préstamo: {e}")
+        return False
