@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
 import joblib
+import numpy as np
 
 # --- DB Functions ---
 from database.db import (
