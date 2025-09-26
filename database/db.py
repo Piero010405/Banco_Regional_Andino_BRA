@@ -166,7 +166,7 @@ def insert_loan_evaluation(loan_id, pred_class, risk_level, monthly_payment, dti
 import pandas as pd
 
 def get_customer_profile(customer_id):
-    conn = get_connection()
+    conn = get_connection()  # conexión cacheada
     query = """
         SELECT c.full_name, c.marital_status, c.gender, c.birth_date,
                p.age, p.net_monthly_income, p.credit_score,
@@ -176,7 +176,7 @@ def get_customer_profile(customer_id):
         WHERE c.customer_id = %s
     """
     df = pd.read_sql(query, conn, params=(customer_id,))
-    conn.close()
+    # NO cerrar aquí conn.close()
     if not df.empty:
         return df.iloc[0].to_dict()
     return {}
