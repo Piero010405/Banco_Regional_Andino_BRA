@@ -4,16 +4,17 @@ import pandas as pd
 import hashlib
 import streamlit as st
 import os
-from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+# Cargar secrets de Streamlit Cloud (o .env en local)
+if os.path.exists(".env"):
+    from dotenv import load_dotenv
+    load_dotenv()
 
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER", st.secrets.get("DB_USER"))
+DB_PASSWORD = os.getenv("DB_PASSWORD", st.secrets.get("DB_PASSWORD"))
+DB_HOST = os.getenv("DB_HOST", st.secrets.get("DB_HOST"))
+DB_PORT = os.getenv("DB_PORT", st.secrets.get("DB_PORT"))
+DB_NAME = os.getenv("DB_NAME", st.secrets.get("DB_NAME"))
 
 # Función para obtener una conexión a la base de datos
 @st.cache_resource
