@@ -176,7 +176,6 @@ def get_customer_profile(customer_id):
         WHERE c.customer_id = %s
     """
     df = pd.read_sql(query, conn, params=(customer_id,))
-    # NO cerrar aquí conn.close()
     if not df.empty:
         return df.iloc[0].to_dict()
     return {}
