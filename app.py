@@ -1,6 +1,6 @@
 import streamlit as st
 from pathlib import Path
-from database.db import verify_user 
+import joblib
 
 # --- DB Functions ---
 from database.db import (
@@ -38,11 +38,13 @@ if logo_path.exists():
 @st.cache_resource
 def load_credit_model():
     try:
-        with open('components/demo_model.pkl', 'rb') as f:
-            model = pickle.load(f)
+        model = joblib.load('components/demo_model.pkl')
         return model
     except FileNotFoundError:
         st.error("No se encontró el archivo del modelo de crédito.")
+        return None
+    except Exception as e:
+        st.error(f"Error al cargar el modelo: {e}")
         return None
 
 # =============================

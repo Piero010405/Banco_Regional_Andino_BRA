@@ -1,6 +1,8 @@
-streamlit
-psycopg2-binary
+# requirements.txt
+scikit-learn==1.3.2
 pandas
 numpy
+streamlit
+psycopg2-binary
 joblib
 python-dotenv
